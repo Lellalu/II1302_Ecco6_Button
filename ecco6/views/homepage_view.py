@@ -8,7 +8,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from PIL import Image
 from streamlit_js_eval import get_geolocation
 from audiorecorder import audiorecorder
-from st_audiorec import st_audiorec
 
 from ecco6 import util
 from ecco6.agent import Ecco6Agent
