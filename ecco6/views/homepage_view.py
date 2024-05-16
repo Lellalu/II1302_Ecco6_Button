@@ -1,14 +1,13 @@
 import asyncio
 import logging
 from typing import Tuple
-import json
 
 import streamlit as st
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from PIL import Image
 from streamlit_js_eval import get_geolocation
-from streamlit_mic_recorder import mic_recorder
+from audiorecorder import audiorecorder
 
 from ecco6 import util
 from ecco6.agent import Ecco6Agent
@@ -36,7 +35,6 @@ def init_homepage() -> Tuple[st.selectbox, st.selectbox]:
   if "messages" not in st.session_state:
      st.session_state.messages = []
 
-
   image = Image.open('./ecco6/ecco6logo.png')
   col1, col2 = st.columns([1, 3])  # Adjust the width ratio as needed
   with col1:
@@ -54,7 +52,6 @@ def init_homepage() -> Tuple[st.selectbox, st.selectbox]:
   st.write("      - 2. Getting your location")
   st.write("      - 3. Modifying your tasks")
   st.write("      - 4. Realtime weather and news infromation")
-
 
   with st.sidebar:
     st.markdown("""
@@ -153,37 +150,33 @@ def init_homepage() -> Tuple[st.selectbox, st.selectbox]:
 
 
 def homepage_view():
-    st.empty()
-    openai_chat_model, openai_tts_voice = init_homepage()
+  st.empty()
+  openai_chat_model, openai_tts_voice = init_homepage()
 
-    openai_client = OpenAIClient(
-        st.secrets["OPENAI_API_KEY"],
-        chat_model=openai_chat_model,
-        tts_voice=openai_tts_voice)
-    
-    ecco6_agent = Ecco6Agent(
-        st.secrets["OPENAI_API_KEY"], 
-        google_credentials=st.session_state.google_credentials if "google_credentials" in st.session_state else None,
-        rpi_url=st.session_state.rpi_url if "rpi_url" in st.session_state else None,
-        chat_model=openai_chat_model)
-    
-    user_audio = mic_recorder(
-        start_prompt="Start recording",
-        stop_prompt="Stop recording",
-        just_once=True,
-        format="wav",
-    )
-    if user_audio:
-      buffer = util.create_memory_file(user_audio['bytes'], "foo.wav")
-      transcription = openai_client.speech_to_text(buffer)
-      logging.info(f"User said: {transcription}.")
-      util.append_message("user", transcription, user_audio['bytes'])
-      answer = ecco6_agent.chat_completion([
-        {"role": m["role"], "content": m["content"]}
-        for m in st.session_state.messages
-      ])
-      if answer:
-        logging.info(f"trying to play {answer}.")
-        audio_response = openai_client.text_to_speech(answer)
-        util.append_message("assistant", answer, audio_response)
-        util.autoplay_hidden_audio(audio_response)
+  openai_client = OpenAIClient(
+      st.secrets["OPENAI_API_KEY"],
+      chat_model=openai_chat_model,
+      tts_voice=openai_tts_voice)
+  
+  ecco6_agent = Ecco6Agent(
+      st.secrets["OPENAI_API_KEY"], 
+      google_credentials=st.session_state.google_credentials if "google_credentials" in st.session_state else None,
+      rpi_url=st.session_state.rpi_url if "rpi_url" in st.session_state else None,
+      chat_model=openai_chat_model)
+  
+  user_audio = audiorecorder("Click to record", "Click to stop recording")
+  if len(user_audio) > 0:
+    user_audio_bytes = user_audio.export().read()
+    buffer = util.create_memory_file(user_audio_bytes, "foo.wav")
+    transcription = openai_client.speech_to_text(buffer)
+    logging.info(f"User said: {transcription}.")
+    util.append_message("user", transcription, user_audio_bytes)
+    answer = ecco6_agent.chat_completion([
+      {"role": m["role"], "content": m["content"]}
+      for m in st.session_state.messages
+    ])
+    if answer:
+      logging.info(f"trying to play {answer}.")
+      audio_response = openai_client.text_to_speech(answer)
+      util.append_message("assistant", answer, audio_response)
+      util.autoplay_hidden_audio(audio_response)

@@ -1,8 +1,7 @@
 import logging
 
-import streamlit as st
-from views.homepage_view import homepage_view
-from views.login_view import login_view
+from ecco6.views.homepage_view import homepage_view
+from ecco6.views.login_view import login_view
 
 from ecco6.tool import alarm
 from ecco6 import util

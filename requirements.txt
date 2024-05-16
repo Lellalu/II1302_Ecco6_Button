@@ -22,4 +22,5 @@ speechrecognition
 pyttsx3
 streamlit-mic-recorder
 extra-streamlit-components
+streamlit-audiorecorder
 .
