@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import webbrowser
 
 import firebase_admin
 import requests

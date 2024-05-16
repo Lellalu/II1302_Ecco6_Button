@@ -3,7 +3,6 @@ import logging
 import streamlit as st
 from views.homepage_view import homepage_view
 from views.login_view import login_view
-from streamlit_cookies_controller import CookieController
 
 from ecco6.tool import alarm
 from ecco6 import util
