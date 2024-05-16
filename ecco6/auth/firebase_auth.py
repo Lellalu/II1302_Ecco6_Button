@@ -8,9 +8,9 @@ import requests
 import streamlit as st
 from firebase_admin import auth, credentials, exceptions, initialize_app
 from httpx_oauth.clients.google import GoogleOAuth2
-from streamlit_cookies_controller import CookieController
 
 from firebase_admin import credentials, db
+from ecco6 import util
 
 firebase_credentials = {
     "type": st.secrets["FIREBASE"]["TYPE"],
@@ -148,8 +148,7 @@ def sign_in(email:str, password:str) -> None:
         else:
             st.session_state.user_info = user_info
             st.session_state.email = email
-            controller = CookieController()
-            controller.set('ecco6_login_email', email)
+            util.set_cookie('ecco6_login_email', email)
             add_user_email_to_firebase(email)
             st.experimental_rerun()
 
@@ -206,8 +205,7 @@ def reset_password(email:str) -> None:
 
 def sign_out() -> None:
     remove_user_email_from_firebase(st.session_state.email)
-    controller = CookieController()
-    controller.remove('ecco6_login_email')
+    util.remove_cookie('ecco6_login_email')
     st.session_state.clear()
     st.session_state.auth_success = 'You have successfully signed out'
 

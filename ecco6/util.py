@@ -4,12 +4,27 @@ import logging
 from typing import BinaryIO
 
 import streamlit as st
+from streamlit_cookies_controller import CookieController
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s.%(msecs)03d %(levelname)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
 )
+
+controller = CookieController()
+
+def get_cookie(key):
+  return controller.get(key)
+
+def set_cookie(key, value):
+  controller.set(key, value)
+
+def remove_cookie(key):
+  controller.remove(key)
+
+def is_login():
+  return get_cookie("ecco6_login_email") is not None
 
 
 def display_audio_recording() -> "audiorecorder":

@@ -6,6 +6,7 @@ from views.login_view import login_view
 from streamlit_cookies_controller import CookieController
 
 from ecco6.tool import alarm
+from ecco6 import util
 import threading
 
 
@@ -16,8 +17,7 @@ logging.basicConfig(
 )
 
 def main():
-  controller = CookieController()
-  if controller.get("ecco6_login_email") is None:
+  if not util.is_login():
     login_view()
   else:
     #user_email = st.session_state.email 
