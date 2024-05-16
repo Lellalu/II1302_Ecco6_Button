@@ -1,5 +1,7 @@
+import asyncio
 import logging
 from typing import Tuple
+import json
 
 import streamlit as st
 from google.auth.transport.requests import Request
@@ -7,6 +9,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from PIL import Image
 from streamlit_js_eval import get_geolocation
 from streamlit_mic_recorder import mic_recorder
+from streamlit_js import st_js, st_js_blocking
 
 from ecco6 import util
 from ecco6.agent import Ecco6Agent
@@ -15,6 +18,14 @@ from ecco6.client.OpenAIClient import OpenAIClient
 
 from firebase_admin import db
 
+
+def ls_get(k, key=None):
+  return st_js_blocking(f"return JSON.parse(localStorage.getItem('{k}'));", key)
+
+
+def ls_set(k, v, key=None):
+  jdata = json.dumps(v, ensure_ascii=False)
+  st_js_blocking(f"localStorage.setItem('{k}', JSON.stringify({jdata}));", key)
 
 
 def init_homepage() -> Tuple[st.selectbox, st.selectbox]:
@@ -121,18 +132,27 @@ def init_homepage() -> Tuple[st.selectbox, st.selectbox]:
          "https://www.googleapis.com/auth/tasks",
          "https://www.googleapis.com/auth/documents",
          "https://www.googleapis.com/auth/drive",
-         "https://www.googleapis.com/auth/drive.appdata"
+         "https://www.googleapis.com/auth/drive.appdata",
       ]
       flow = InstalledAppFlow.from_client_config(
           google_client_config,
           scopes=scopes,
           redirect_uri = st.secrets["GOOGLE_AUTH"]["REDIRECT_URIS"][0],
       )
+
+      authorization_url = asyncio.run(firebase_auth.client.get_authorization_url(
+          st.secrets["GOOGLE_AUTH"]["REDIRECT_URIS"][0],
+          scope=scopes,
+          extras_params={"access_type": "offline"},
+      ))
+      auth_code = st.query_params.get("code")
+      if auth_code:
+        flow.fetch_token(code=auth_code)
+        google_credentials = flow.credentials
+        st.session_state["google_credentials"] = google_credentials
+        st.query_params.clear()
       if "google_credentials" not in st.session_state:
-        if st.button("Connect with Google"):
-          creds = flow.run_local_server(
-            port=9000)
-          st.session_state.google_credentials = creds
+        st.link_button("Sign in with Google", authorization_url)
       else:
         creds = st.session_state.google_credentials
         if not creds.valid or (creds.expired and creds.refresh_token): 

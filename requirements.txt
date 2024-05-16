@@ -21,4 +21,5 @@ pyaudio
 speechrecognition
 pyttsx3
 streamlit-mic-recorder
+streamlit-cookies-controller
 .

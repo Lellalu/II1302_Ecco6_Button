@@ -8,6 +8,7 @@ import requests
 import streamlit as st
 from firebase_admin import auth, credentials, exceptions, initialize_app
 from httpx_oauth.clients.google import GoogleOAuth2
+from streamlit_cookies_controller import CookieController
 
 from firebase_admin import credentials, db
 
@@ -118,7 +119,7 @@ def raise_detailed_error(request_object):
 # Initialize Google OAuth2 client
 client_id = st.secrets["GOOGLE_AUTH"]["CLIENT_ID"] 
 client_secret = st.secrets["GOOGLE_AUTH"]["CLIENT_SECRET"]
-redirect_url = "https://ii1302-ecco6.streamlit.app/"  # Your redirect URL
+redirect_url = "http://localhost:8501"  # Your redirect URL
 
 client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
 
@@ -147,6 +148,8 @@ def sign_in(email:str, password:str) -> None:
         else:
             st.session_state.user_info = user_info
             st.session_state.email = email
+            controller = CookieController()
+            controller.set('ecco6_login_email', email)
             add_user_email_to_firebase(email)
             st.experimental_rerun()
 
@@ -203,6 +206,8 @@ def reset_password(email:str) -> None:
 
 def sign_out() -> None:
     remove_user_email_from_firebase(st.session_state.email)
+    controller = CookieController()
+    controller.remove('ecco6_login_email')
     st.session_state.clear()
     st.session_state.auth_success = 'You have successfully signed out'
 
@@ -262,28 +267,3 @@ def get_logged_in_user_email():
     except Exception as e:
         print("Error in get_logged_in_user_email:", e)
         pass
-
-
-def show_login_button():
-    authorization_url = asyncio.run(client.get_authorization_url(
-        redirect_url,
-        scope=["email", "profile"],
-        extras_params={"access_type": "offline"},
-    ))
-    st.markdown(f'<a href="{authorization_url}" target="_self">Login</a>', unsafe_allow_html=True)
-    get_logged_in_user_email()
-
-
-# Define your authorization URL
-authorization_url = asyncio.run(client.get_authorization_url(
-    redirect_url,
-    scope=["email", "profile"],
-    extras_params={"access_type": "offline"},
-))
-
-def redirect_and_call_function():
-    webbrowser.open(authorization_url)
-    get_logged_in_user_email()
-
-
-

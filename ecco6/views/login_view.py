@@ -21,21 +21,6 @@ def login_view():
   #if st.button("Sign-in with Google"):
   #    firebase_auth.redirect_and_call_function()
 
-  # Define the authorization URL
-  authorization_url = firebase_auth.authorization_url
-
-  # Add a button to redirect to another page
-  if st.button("Sign-in with Google"):
-      # Redirect to Google OAuth2 authorization URL
-      st.markdown(
-          f"""
-          <meta http-equiv="refresh" content="0;URL={authorization_url}">
-          """,
-          unsafe_allow_html=True
-      )
-      firebase_auth.get_logged_in_user_email()
-
-
   customized_button = st.markdown("""
     <style >
     .stDownloadButton, div.stButton {text-align:center}
@@ -88,15 +73,4 @@ def login_view():
   elif 'auth_warning' in st.session_state:
     auth_notification.warning(st.session_state.auth_warning)
     del st.session_state.auth_warning
-
-    
-  if 'email' not in st.session_state:
-      st.session_state.email = None
-
-  if not st.session_state.email:
-      # User is not authenticated, attempt to log in
-      email = firebase_auth.get_logged_in_user_email()
-      if email:
-          st.session_state.email = email
-          st.experimental_rerun()
 
