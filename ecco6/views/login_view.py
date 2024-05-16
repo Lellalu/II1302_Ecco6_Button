@@ -23,7 +23,6 @@ def login_view():
 
   # Define the authorization URL
   authorization_url = firebase_auth.authorization_url
-  print(authorization_url)
 
   # Add a button to redirect to another page
   if st.button("Sign-in with Google"):

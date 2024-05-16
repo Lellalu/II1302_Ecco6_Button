@@ -9,7 +9,6 @@ import streamlit as st
 from firebase_admin import auth, credentials, exceptions, initialize_app
 from httpx_oauth.clients.google import GoogleOAuth2
 
-import firebase_admin
 from firebase_admin import credentials, db
 
 firebase_credentials = {
@@ -53,9 +52,9 @@ def add_user_email_to_firebase(email):
 # Function to remove user email from Firebase on logout
 def remove_user_email_from_firebase(email):
     ref = db.reference('/logged_in_users')
-    users = ref.order_by_value().equal_to(email).get()
-    if users:
-        for user_id in users:
+    data = ref.get()
+    for user_id in data:
+        if data[user_id] == email:
             ref.child(user_id).delete()
 
 def sign_in_with_email_and_password(email, password):
@@ -147,9 +146,8 @@ def sign_in(email:str, password:str) -> None:
         # Save user info to session state and rerun
         else:
             st.session_state.user_info = user_info
-            #session_state['user_email'] = email
-            add_user_email_to_firebase(st.session_state.email)
-            print("user email", session_state['user_email'])
+            st.session_state.email = email
+            add_user_email_to_firebase(email)
             st.experimental_rerun()
 
     except requests.exceptions.HTTPError as error:
@@ -158,9 +156,9 @@ def sign_in(email:str, password:str) -> None:
             st.session_state.auth_warning = 'Error: Use a valid email and password'
         else:
             st.session_state.auth_warning = 'Error: Please try again later'
-
+        logging.warning(error_message)
     except Exception as error:
-        print(error)
+        logging.warning(error)
         st.session_state.auth_warning = 'Error: Please try again later'
 
 
