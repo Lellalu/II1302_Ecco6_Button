@@ -1,0 +1,4 @@
+build-essential
+ffmpeg
+portaudio19-dev
+python-all-dev
