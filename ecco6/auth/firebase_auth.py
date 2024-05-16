@@ -119,7 +119,7 @@ def raise_detailed_error(request_object):
 # Initialize Google OAuth2 client
 client_id = st.secrets["GOOGLE_AUTH"]["CLIENT_ID"] 
 client_secret = st.secrets["GOOGLE_AUTH"]["CLIENT_SECRET"]
-redirect_url = "http://ii1302-ecco6.streamlit.app"  # Your redirect URL
+redirect_url = "https://ii1302-ecco6.streamlit.app/"  # Your redirect URL
 
 client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
 
