@@ -203,7 +203,7 @@ def reset_password(email:str) -> None:
 
 
 def sign_out() -> None:
-    remove_user_email_from_firebase(st.session_state.email)
+    #remove_user_email_from_firebase(st.session_state.email)
     util.remove_cookie('ecco6_login_email')
     st.session_state.clear()
     st.session_state.auth_success = 'You have successfully signed out'
