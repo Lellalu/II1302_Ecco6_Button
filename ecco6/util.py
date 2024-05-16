@@ -4,7 +4,7 @@ import logging
 from typing import BinaryIO
 
 import streamlit as st
-from streamlit_cookies_manager import CookieManager
+import extra_streamlit_components as stx
 
 logging.basicConfig(
     level=logging.INFO,
@@ -14,19 +14,19 @@ logging.basicConfig(
 
 @st.cache_resource
 def get_cookie_manager():
-    return CookieManager()
+    return stx.CookieManager()
 
 cookie_manager = get_cookie_manager()
 
 def get_cookie(key):
-  return cookie_manager.get(key, None)
+  return cookie_manager.get(key)
 
 def set_cookie(key, value):
-  cookie_manager[key] = value
+  cookie_manager.set(key, value)
 
 def remove_cookie(key):
-  cookie_manager[key] = None
-  
+  cookie_manager.delete(key)
+
 def is_login():
   return get_cookie("ecco6_login_email") is not None
 
