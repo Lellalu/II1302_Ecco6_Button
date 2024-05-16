@@ -9,7 +9,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from PIL import Image
 from streamlit_js_eval import get_geolocation
 from streamlit_mic_recorder import mic_recorder
-from streamlit_js import st_js, st_js_blocking
 
 from ecco6 import util
 from ecco6.agent import Ecco6Agent
@@ -17,15 +16,6 @@ from ecco6.auth import firebase_auth
 from ecco6.client.OpenAIClient import OpenAIClient
 
 from firebase_admin import db
-
-
-def ls_get(k, key=None):
-  return st_js_blocking(f"return JSON.parse(localStorage.getItem('{k}'));", key)
-
-
-def ls_set(k, v, key=None):
-  jdata = json.dumps(v, ensure_ascii=False)
-  st_js_blocking(f"localStorage.setItem('{k}', JSON.stringify({jdata}));", key)
 
 
 def init_homepage() -> Tuple[st.selectbox, st.selectbox]:
