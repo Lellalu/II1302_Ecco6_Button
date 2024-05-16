@@ -9,12 +9,8 @@ import streamlit as st
 from firebase_admin import auth, credentials, exceptions, initialize_app
 from httpx_oauth.clients.google import GoogleOAuth2
 
-import os
-
 import firebase_admin
 from firebase_admin import credentials, db
-
-import toml
 
 firebase_credentials = {
     "type": st.secrets["FIREBASE"]["TYPE"],
@@ -208,8 +204,8 @@ def reset_password(email:str) -> None:
 
 
 def sign_out() -> None:
-    st.session_state.clear()
     remove_user_email_from_firebase(st.session_state.email)
+    st.session_state.clear()
     st.session_state.auth_success = 'You have successfully signed out'
 
 

@@ -20,4 +20,5 @@ setuptools
 pyaudio
 speechrecognition
 pyttsx3
+streamlit-mic-recorder
 .

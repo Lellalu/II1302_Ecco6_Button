@@ -1,14 +1,12 @@
 import logging
 from typing import Tuple
-import speech_recognition as sr
-import os
-import base64
 
 import streamlit as st
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from PIL import Image
 from streamlit_js_eval import get_geolocation
+from streamlit_mic_recorder import mic_recorder
 
 from ecco6 import util
 from ecco6.agent import Ecco6Agent
@@ -159,61 +157,23 @@ def homepage_view():
         rpi_url=st.session_state.rpi_url if "rpi_url" in st.session_state else None,
         chat_model=openai_chat_model)
     
-    while True:
-        if listen_for_wake_word():
-            print("Start recording...")
-            audio = record_audio_until_silence()
-            if audio:
-                buffer = util.create_memory_file(audio.get_wav_data(), "foo.wav")
-                transcription = openai_client.speech_to_text(buffer)
-                logging.info(f"User said: {transcription}.")
-                util.append_message("user", transcription, audio.get_wav_data())
-                answer = ecco6_agent.chat_completion([
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages
-                ])
-                if answer:
-                    logging.info(f"trying to play {answer}.")
-                    audio_response = openai_client.text_to_speech(answer)
-                    util.append_message("assistant", answer, audio_response)
-                    util.autoplay_hidden_audio(audio_response)
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sound_file_hello = "connected.mp3"
-sound_file_stop = "stop.mp3"
-sound_file_path_hello = os.path.join(current_dir, sound_file_hello)
-sound_file_path_stop = os.path.join(current_dir, sound_file_stop)
-hello_file_bytes = open(sound_file_path_hello, "rb").read()
-stop_file_bytes = open(sound_file_path_stop, "rb").read()
-
-# Function to listen for the wake word "Hello"
-def listen_for_wake_word():
-    recognizer = sr.Recognizer()
-
-    with sr.Microphone(device_index=0) as source:
-        recognizer.adjust_for_ambient_noise(source)
-        print("Listening for wake word 'Hello'...")
-        while True:
-            try:
-                audio = recognizer.listen(source, timeout=1, phrase_time_limit=1)
-                wake_word = recognizer.recognize_google(audio)
-                if wake_word.lower() == "hello":
-                    print("Wake word 'Hello' detected!")
-                    util.autoplay_hidden_audio(hello_file_bytes)
-                    return True
-            except sr.WaitTimeoutError:
-              pass
-            except sr.UnknownValueError:
-              pass
-
-# Function to record audio until silence is detected
-def record_audio_until_silence():
-    recognizer = sr.Recognizer()
-    microphone = sr.Microphone()
-    with microphone as source:
-        recognizer.adjust_for_ambient_noise(source)
-        print("Listening...")
-        audio = recognizer.listen(source, timeout=6)
-        print("Stopped listening.")
-        util.autoplay_hidden_audio(stop_file_bytes)
-        return audio
+    user_audio = mic_recorder(
+        start_prompt="Start recording",
+        stop_prompt="Stop recording",
+        just_once=True,
+        format="wav",
+    )
+    if user_audio:
+      buffer = util.create_memory_file(user_audio['bytes'], "foo.wav")
+      transcription = openai_client.speech_to_text(buffer)
+      logging.info(f"User said: {transcription}.")
+      util.append_message("user", transcription, user_audio['bytes'])
+      answer = ecco6_agent.chat_completion([
+        {"role": m["role"], "content": m["content"]}
+        for m in st.session_state.messages
+      ])
+      if answer:
+        logging.info(f"trying to play {answer}.")
+        audio_response = openai_client.text_to_speech(answer)
+        util.append_message("assistant", answer, audio_response)
+        util.autoplay_hidden_audio(audio_response)
