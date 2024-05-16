@@ -16,7 +16,6 @@ logging.basicConfig(
 )
 
 def main():
-  print(st.session_state)
   if not util.is_login():
     login_view()
   else:

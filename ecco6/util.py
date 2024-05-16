@@ -4,7 +4,7 @@ import logging
 from typing import BinaryIO
 
 import streamlit as st
-import extra_streamlit_components as stx
+from streamlit_cookies_manager import CookieManager
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,24 +13,22 @@ logging.basicConfig(
 )
 
 @st.cache_resource
-def get_manager():
-    return stx.CookieManager()
+def get_cookie_manager():
+    return CookieManager()
 
-cookie_manager = get_manager()
+cookie_manager = get_cookie_manager()
 
 def get_cookie(key):
-  return cookie_manager.get(cookie=key)
+  return cookie_manager.get(key, None)
 
 def set_cookie(key, value):
-  cookie_manager.set(key, value)
+  cookie_manager[key] = value
 
 def remove_cookie(key):
-  cookie_manager.delete(key)
-
+  cookie_manager[key] = None
+  
 def is_login():
-  print(cookie_manager.get_all())
   return get_cookie("ecco6_login_email") is not None
-
 
 def display_audio_recording() -> "audiorecorder":
   """Display audio recoriding in the Chatbox.
